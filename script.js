@@ -14,8 +14,8 @@ function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(
 function formatId(s){ return (s||'').toString().replace(/\D/g,''); }
 
 function makeBanner(hasNotes){
-  if(hasNotes) return '<div class="py-2 px-4 rounded-t-lg text-white font-semibold" style="background:linear-gradient(90deg,#16a34a,#059669)"><span>يوجد ملاحظات</span></div>';
-  return '<div class="py-2 px-4 rounded-t-lg text-white font-semibold" style="background:linear-gradient(90deg,#dc2626,#b91c1c)"><span>لا توجد ملاحظات</span></div>';
+  if(hasNotes) return '<div class="py-2 px-4 rounded-t-lg text-white font-semibold" style="background:linear-gradient(90deg,#16a34a,#059669)"><span>يوجد قرارت تعديل</span></div>';
+  return '<div class="py-2 px-4 rounded-t-lg text-white font-semibold" style="background:linear-gradient(90deg,#dc2626,#b91c1c)"><span>لا توجد قرارات تعديل</span></div>';
 }
 
 function makeCardHtml(item, idx){
