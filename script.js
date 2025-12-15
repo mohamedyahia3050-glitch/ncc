@@ -28,7 +28,7 @@ function makeCardHtml(item, idx){
         <p class="mb-1"><strong>الاسم:</strong> ${escapeHtml(item.name)}</p>
         <p class="mb-1"><strong>جهة التكليف:</strong> ${escapeHtml(item.current)}</p>
         <p class="mb-1"><strong>الرقم القومي:</strong> ${escapeHtml(item.id)}</p>
-        <p class="mb-1"><strong>الملاحظات:</strong> ${ item.attachments ? '<div class="whitespace-pre-line mt-2 text-sm">'+escapeHtml(item.attachments)+'</div>' : '<span class="text-red-600">لا توجد ملاحظات</span>' }</p>
+        <p class="mb-1"><strong>قرارات التعديل:</strong> ${ item.attachments ? '<div class="whitespace-pre-line mt-2 text-sm">'+escapeHtml(item.attachments)+'</div>' : '<span class="text-red-600">لا توجد قرارات تعديل</span>' }</p>
       </div>
     </div>
   `;
