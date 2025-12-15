@@ -53,11 +53,14 @@
       <!-- البحث -->
       <div class="flex gap-2 items-center mb-4">
         <input
-          id="searchInput"
-          type="text"
-          placeholder="أدخل الرقم القومي المكون من 14 رقمًا"
-          class="flex-1 p-3 rounded-md border border-gray-300 text-right focus:outline-none focus:ring-2 focus:ring-blue-600"
-        />
+  id="searchInput"
+  type="text"
+  inputmode="numeric"
+  maxlength="14"
+  placeholder="أدخل الرقم القومي المكون من 14 رقمًا"
+  class="flex-1 w-full p-3 rounded-md border border-gray-300 text-right focus:outline-none focus:ring-2 focus:ring-blue-600"
+  oninput="this.value = this.value.replace(/[^0-9]/g,'')"
+/>
         <button
           id="searchBtn"
           class="px-5 py-2 rounded-md bg-blue-700 text-white font-semibold hover:bg-blue-800">
