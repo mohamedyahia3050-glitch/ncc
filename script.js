@@ -9,12 +9,46 @@ async function loadData(){
   }
 }
 
-function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escapeHtml(s){ 
+  return (s||'')
+    .toString()
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;'); 
+}
 
-function formatId(s){ return (s||'').toString().replace(/\D/g,''); }
+function formatId(s){ 
+  return (s||'').toString().replace(/\D/g,''); 
+}
+
+/* =======================
+   LIMIT : 3 searches / day
+======================= */
+function checkSearchLimit(){
+  const today = new Date().toISOString().slice(0,10);
+  const limit = 3;
+
+  let data = JSON.parse(localStorage.getItem('searchLimit'));
+
+  if(!data || data.date !== today){
+    data = { date: today, count: 0 };
+  }
+
+  if(data.count >= limit){
+    return { allowed:false, remaining:0 };
+  }
+
+  data.count++;
+  localStorage.setItem('searchLimit', JSON.stringify(data));
+
+  return { allowed:true, remaining: limit - data.count };
+}
+/* ======================= */
 
 function makeBanner(hasNotes){
-  if(hasNotes) return '<div class="py-2 px-4 rounded-t-lg text-white font-semibold" style="background:linear-gradient(90deg,#16a34a,#059669)"><span>يوجد قرارت تعديل</span></div>';
+  if(hasNotes) 
+    return '<div class="py-2 px-4 rounded-t-lg text-white font-semibold" style="background:linear-gradient(90deg,#16a34a,#059669)"><span>يوجد قرارات تعديل</span></div>';
   return '<div class="py-2 px-4 rounded-t-lg text-white font-semibold" style="background:linear-gradient(90deg,#dc2626,#b91c1c)"><span>لا توجد قرارات تعديل</span></div>';
 }
 
@@ -28,7 +62,11 @@ function makeCardHtml(item, idx){
         <p class="mb-1"><strong>الاسم:</strong> ${escapeHtml(item.name)}</p>
         <p class="mb-1"><strong>جهة التكليف:</strong> ${escapeHtml(item.current)}</p>
         <p class="mb-1"><strong>الرقم القومي:</strong> ${escapeHtml(item.id)}</p>
-        <p class="mb-1"><strong>قرارات التعديل:</strong> ${ item.attachments ? '<div class="whitespace-pre-line mt-2 text-sm">'+escapeHtml(item.attachments)+'</div>' : '<span class="text-red-600">لا توجد قرارات تعديل</span>' }</p>
+        <p class="mb-1"><strong>قرارات التعديل:</strong> ${
+          item.attachments
+            ? '<div class="whitespace-pre-line mt-2 text-sm">'+escapeHtml(item.attachments)+'</div>'
+            : '<span class="text-red-600">لا توجد قرارات تعديل</span>'
+        }</p>
       </div>
     </div>
   `;
@@ -54,35 +92,43 @@ function makeAccordion(items){
 }
 
 let ALL = [];
+
 document.getElementById('searchBtn').addEventListener('click', async ()=>{
   if(!ALL.length) ALL = await loadData();
   doSearch();
 });
+
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   document.getElementById('searchInput').value='';
   document.getElementById('result').innerHTML='';
 });
+
 document.getElementById('searchInput').addEventListener('keydown', async (e)=>{
   if(!ALL.length) ALL = await loadData();
   if(e.key === 'Enter') doSearch();
 });
 
 function doSearch(){
-  const q = formatId(document.getElementById('searchInput').value);
   const resDiv = document.getElementById('result');
-  if(!q){ resDiv.innerHTML = '<p class="text-red-500">من فضلك أدخل الرقم القومي</p>'; return; }
-  const matches = ALL.filter(it => formatId(it.id) === q);
-  if(!matches.length){ resDiv.innerHTML = '<p class="text-red-500 font-semibold">لا توجد بيانات لهذا الرقم القومي</p>'; return; }
-  if(matches.length === 1){
-    resDiv.innerHTML = makeCardHtml(matches[0], 0);
+
+  // LIMIT CHECK
+  const limitCheck = checkSearchLimit();
+  if(!limitCheck.allowed){
+    resDiv.innerHTML = `
+      <div class="mt-4 p-4 rounded-md border border-red-300 bg-red-50 text-red-700 text-sm font-semibold text-right">
+        تم استنفاد عدد الاستعلامات المسموح بها لهذا اليوم.
+        <br>يرجى المحاولة مرة أخرى غدًا.
+      </div>
+    `;
     return;
+  }else{
+    resDiv.innerHTML = `
+      <div class="mb-2 text-sm text-red-600 text-right">
+        متبقي ${limitCheck.remaining} محاولة اليوم
+      </div>
+    `;
   }
-  resDiv.innerHTML = makeAccordion(matches);
-  document.querySelectorAll('.accordion-header').forEach((btn, idx)=>{
-    btn.addEventListener('click', ()=>{
-      const body = btn.nextElementSibling;
-      if(!body) return;
-      body.classList.toggle('hidden');
-    });
-  });
-}
+
+  const q = formatId(document.getElementById('searchInput').value);
+  if(!q){
+    resDiv.innerHTML +
