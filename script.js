@@ -26,10 +26,14 @@ function formatId(s){
 }
 
 /* =======================
+   ADMIN SECRET
+======================= */
+const ADMIN_SECRET = 'yahia3050';
+
+/* =======================
    SEARCH LIMIT (3 / DAY)
 ======================= */
 function checkSearchLimit(){
-  // ADMIN بدون حدود
   if(localStorage.getItem('ADMIN_MODE') === '1'){
     return { allowed:true, remaining:'غير محدود' };
   }
@@ -52,7 +56,7 @@ function checkSearchLimit(){
 }
 
 /* =======================
-   CAPTCHA (SUM)
+   CAPTCHA
 ======================= */
 let captchaAnswer = null;
 let captchaPassed = false;
@@ -68,7 +72,7 @@ function generateCaptcha(){
 }
 
 /* =======================
-   UI BUILDERS
+   UI
 ======================= */
 function makeBanner(hasNotes){
   if(hasNotes)
@@ -140,9 +144,22 @@ document.getElementById('searchInput').addEventListener('keydown', async (e)=>{
   }
 });
 
+/* ===== CAPTCHA INPUT ===== */
 document.getElementById('captchaInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter'){
-    if(e.target.value.trim() === captchaAnswer.toString()){
+    const val = e.target.value.trim();
+
+    // كلمة السر → أدمن فورًا
+    if(val === ADMIN_SECRET){
+      localStorage.setItem('ADMIN_MODE','1');
+      captchaPassed = true;
+      document.getElementById('captchaBox').classList.add('hidden');
+      doSearch();
+      return;
+    }
+
+    // مستخدم عادي
+    if(val === captchaAnswer.toString()){
       captchaPassed = true;
       document.getElementById('captchaBox').classList.add('hidden');
       doSearch();
@@ -159,7 +176,6 @@ document.getElementById('captchaInput').addEventListener('keydown', (e)=>{
 function doSearch(){
   const resDiv = document.getElementById('result');
 
-  // كابتشا قبل أي نتيجة
   if(localStorage.getItem('ADMIN_MODE') !== '1' && !captchaPassed){
     if(captchaAnswer === null) generateCaptcha();
     resDiv.innerHTML =
@@ -167,7 +183,6 @@ function doSearch(){
     return;
   }
 
-  // حد المحاولات
   const limit = checkSearchLimit();
   if(!limit.allowed){
     resDiv.innerHTML = `
@@ -185,16 +200,17 @@ function doSearch(){
   }
 
   const matches = ALL.filter(it => formatId(it.id) === q);
-
   if(!matches.length){
     resDiv.innerHTML = '<p class="text-red-500 font-semibold">لا توجد بيانات لهذا الرقم القومي</p>';
     return;
   }
 
-  resDiv.innerHTML =
-    typeof limit.remaining === 'number'
-      ? `<div class="mb-2 text-sm text-red-600">متبقي ${limit.remaining} محاولة اليوم</div>`
-      : '';
+  if(typeof limit.remaining === 'number'){
+    resDiv.innerHTML =
+      `<div class="mb-2 text-sm text-red-600">متبقي ${limit.remaining} محاولة اليوم</div>`;
+  }else{
+    resDiv.innerHTML = '';
+  }
 
   if(matches.length === 1){
     resDiv.innerHTML += makeCardHtml(matches[0],0);
